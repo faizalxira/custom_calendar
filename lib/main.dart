@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -46,6 +51,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+final _currentMonthProvider = StateProvider.autoDispose<DateTime>((ref) {
+  return DateTime.now();
+});
+
 class CalenderScreenUI extends StatefulWidget {
   const CalenderScreenUI({super.key});
 
@@ -58,7 +67,7 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
   PageController _pageController =
       PageController(initialPage: DateTime.now().month - 1);
 
-  DateTime _currentMonth = DateTime.now();
+  // DateTime _currentMonth = DateTime.now();
   bool selectedcurrentyear = false;
   @override
   void initState() {
@@ -70,35 +79,48 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
     return Scaffold(
       body: Column(
         children: [
-          _buildHeader(),
+          Consumer(
+            builder: (context, ref, child) {
+              return _buildHeader(ref);
+            },
+          ),
           _buildWeeks(),
           Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentMonth = DateTime(_currentMonth.year, index + 1, 1);
-                });
-              },
-              itemCount: 12 * 10, // Show 10 years, adjust this count as needed
-              itemBuilder: (context, pageIndex) {
-                DateTime month =
-                    DateTime(_currentMonth.year, (pageIndex % 12) + 1, 1);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  child: buildCalendar(month),
-                );
-              },
-            ),
+            child: Consumer(builder: (context, ref, child) {
+              final currentMonth = ref.watch(_currentMonthProvider);
+
+              return PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  // setState(() {
+                  ref.read(_currentMonthProvider.notifier).state =
+                      DateTime(currentMonth.year, index + 1, 1);
+                  // _currentMonth = DateTime(currentMonth.year, index + 1, 1);
+                  // });
+                },
+                itemCount:
+                    12 * 10, // Show 10 years, adjust this count as needed
+                itemBuilder: (context, pageIndex) {
+                  DateTime month =
+                      DateTime(currentMonth.year, (pageIndex % 12) + 1, 1);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                    child: buildCalendar(month),
+                  );
+                },
+              );
+            }),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(WidgetRef ref) {
     // Checks if the current month is the last month of the year (December)
-    bool isLastMonthOfYear = _currentMonth.month == 12;
+    final currentMonth = ref.watch(_currentMonthProvider);
+
+    bool isLastMonthOfYear = currentMonth.month == 12;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -119,23 +141,24 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
           ),
           // Displays the name of the current month
           Text(
-            DateFormat('MMMM').format(_currentMonth),
+            DateFormat('MMMM').format(currentMonth),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           DropdownButton<int>(
             // Dropdown for selecting a year
-            value: _currentMonth.year,
+            value: currentMonth.year,
             onChanged: (int? year) {
               if (year != null) {
-                setState(() {
-                  // Sets the current month to January of the selected year
-                  _currentMonth = DateTime(year, 1, 1);
+                // setState(() {
+                // Sets the current month to January of the selected year
+                ref.read(_currentMonthProvider.notifier).state =
+                    DateTime(year, 1, 1);
 
-                  // Calculates the month index based on the selected year and sets the page
-                  int yearDiff = DateTime.now().year - year;
-                  int monthIndex = 12 * yearDiff + _currentMonth.month - 1;
-                  _pageController.jumpToPage(monthIndex);
-                });
+                // Calculates the month index based on the selected year and sets the page
+                int yearDiff = DateTime.now().year - year;
+                int monthIndex = 12 * yearDiff + currentMonth.month - 1;
+                _pageController.jumpToPage(monthIndex);
+                // });
               }
             },
             items: [
@@ -154,12 +177,12 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
             onPressed: () {
               // Moves to the next page if it's not the last month of the year
               if (!isLastMonthOfYear) {
-                setState(() {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                });
+                // setState(() {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+                // });
               }
             },
           ),
