@@ -297,7 +297,7 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
                   color: date.weekday == 7
                       ? Colors.lightBlueAccent.withOpacity(.2)
                       : currentDayYear
-                          ? Colors.tealAccent
+                          ? Colors.tealAccent.withOpacity(.5)
                           : Colors.blueAccent.withOpacity(0.1)),
               child: Center(
                 child: Text(
