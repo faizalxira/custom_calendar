@@ -84,7 +84,10 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
               itemBuilder: (context, pageIndex) {
                 DateTime month =
                     DateTime(_currentMonth.year, (pageIndex % 12) + 1, 1);
-                return buildCalendar(month);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                  child: buildCalendar(month),
+                );
               },
             ),
           ),
@@ -167,9 +170,9 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
 
   Widget _buildWeeks() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildWeekDay('Mon'),
           _buildWeekDay('Tue'),
@@ -184,11 +187,13 @@ class _CalenderScreenUIState extends State<CalenderScreenUI> {
   }
 
   Widget _buildWeekDay(String day) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: Text(
-        day,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+    return Expanded(
+      child: Align(
+        alignment: Alignment.center,
+        child: Text(
+          day,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
